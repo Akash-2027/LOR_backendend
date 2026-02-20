@@ -8,6 +8,10 @@ import errorMiddleware from './middlewares/error.middleware.js';
 
 const app = express();
 
+// Vercel/other reverse proxies forward client IP via X-Forwarded-For.
+// Enable trust proxy so express-rate-limit can identify users correctly.
+app.set('trust proxy', 1);
+
 app.use(cors({ origin: '*', credentials: true }));
 app.use(helmet());
 app.use(express.json({ limit: '2mb' }));
