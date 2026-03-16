@@ -6,12 +6,14 @@ import { ROLES } from '../config/constants.js';
 import {
   registerFacultySchema,
   loginFacultySchema,
-  approveFacultySchema
+  approveFacultySchema,
+  updateFacultySubjectsSchema
 } from '../validators/auth/auth.faculty.schema.js';
 import {
   registerFacultyController,
   loginFacultyController,
-  approveFacultyController
+  approveFacultyController,
+  updateFacultySubjectsController
 } from '../controllers/auth/auth.faculty.controller.js';
 
 const router = Router();
@@ -24,6 +26,13 @@ router.patch(
   roleMiddleware(ROLES.ADMIN),
   validate(approveFacultySchema),
   approveFacultyController
+);
+router.patch(
+  '/subjects',
+  authMiddleware,
+  roleMiddleware(ROLES.FACULTY),
+  validate(updateFacultySubjectsSchema),
+  updateFacultySubjectsController
 );
 
 export default router;

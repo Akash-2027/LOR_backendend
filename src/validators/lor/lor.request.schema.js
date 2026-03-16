@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const createStudentLorRequestSchema = z.object({
   body: z.object({
     facultyId: z.string().trim().min(6, 'Please select faculty'),
+    subject: z.string().trim().min(2, 'Subject is required'),
     purpose: z.string().trim().min(5, 'Purpose should be at least 5 characters'),
     targetUniversity: z.string().trim().min(2, 'Target university is required'),
     program: z.string().trim().min(2, 'Program is required'),

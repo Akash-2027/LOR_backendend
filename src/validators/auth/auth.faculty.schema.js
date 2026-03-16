@@ -23,3 +23,9 @@ export const approveFacultySchema = z.object({
     facultyId: z.string().min(6)
   })
 });
+
+export const updateFacultySubjectsSchema = z.object({
+  body: z.object({
+    subjects: z.array(z.string().trim().min(2, 'Subject must be at least 2 characters')).max(20)
+  })
+});

@@ -6,6 +6,7 @@ const facultySchema = userBaseSchema.clone().add({
   collegeEmail: { type: String, required: true, trim: true, lowercase: true },
   department: { type: String, required: true },
   mobile: { type: String },
+  subjects: { type: [String], default: [] },
   approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' }
 });

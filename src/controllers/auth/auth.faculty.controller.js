@@ -1,6 +1,11 @@
 import asyncHandler from '../../utils/asyncHandler.js';
 import { created, ok } from '../../utils/apiResponse.js';
-import { registerFacultyRequest, loginFaculty, approveFaculty } from '../../services/auth/auth.faculty.service.js';
+import {
+  registerFacultyRequest,
+  loginFaculty,
+  approveFaculty,
+  updateFacultySubjects
+} from '../../services/auth/auth.faculty.service.js';
 
 export const registerFacultyController = asyncHandler(async (req, res) => {
   const result = await registerFacultyRequest(req.validated.body);
@@ -15,4 +20,9 @@ export const loginFacultyController = asyncHandler(async (req, res) => {
 export const approveFacultyController = asyncHandler(async (req, res) => {
   const faculty = await approveFaculty({ facultyId: req.params.facultyId, adminId: req.user.id });
   return ok(res, faculty, 'Faculty approved');
+});
+
+export const updateFacultySubjectsController = asyncHandler(async (req, res) => {
+  const faculty = await updateFacultySubjects({ facultyId: req.user.id, subjects: req.validated.body.subjects });
+  return ok(res, faculty, 'Subjects updated');
 });

@@ -6,7 +6,7 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const getApprovedFacultyList = async () => {
   return Faculty.find({ approvalStatus: 'approved' })
-    .select('_id name email collegeEmail department')
+    .select('_id name email collegeEmail department subjects')
     .sort({ name: 1 });
 };
 
@@ -38,6 +38,7 @@ export const createStudentLorRequest = async (studentId, payload) => {
   const request = await LorRequest.create({
     studentId,
     facultyId: payload.facultyId,
+    subject: payload.subject,
     purpose: payload.purpose,
     targetUniversity: normalizedTargetUniversity,
     program: normalizedProgram,
@@ -74,6 +75,34 @@ export const updateFacultyLorRequestStatus = async (facultyId, requestId, payloa
   request.status = payload.status;
   request.facultyRemark = payload.facultyRemark || '';
   await request.save();
+
+  return request;
+};
+
+export const getFacultyLorRequestForPdf = async (facultyId, requestId) => {
+  const request = await LorRequest.findOne({ _id: requestId, facultyId })
+    .populate('studentId', 'name email enrollment mobile')
+    .populate('facultyId', 'name department');
+
+  if (!request) {
+    throw httpError(404, 'Request not found for this faculty');
+  }
+
+  return request;
+};
+
+export const getStudentLorRequestForPdf = async (studentId, requestId) => {
+  const request = await LorRequest.findOne({ _id: requestId, studentId })
+    .populate('studentId', 'name email enrollment mobile')
+    .populate('facultyId', 'name department');
+
+  if (!request) {
+    throw httpError(404, 'Request not found for this student');
+  }
+
+  if (request.status !== 'approved') {
+    throw httpError(403, 'Letter is not approved yet');
+  }
 
   return request;
 };

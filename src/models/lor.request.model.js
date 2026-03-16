@@ -4,6 +4,7 @@ const lorRequestSchema = new mongoose.Schema(
   {
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     facultyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Faculty', required: true },
+    subject: { type: String, required: true, trim: true },
     purpose: { type: String, required: true, trim: true },
     targetUniversity: { type: String, required: true, trim: true },
     program: { type: String, required: true, trim: true },

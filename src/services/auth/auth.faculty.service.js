@@ -3,6 +3,14 @@ import { hashPassword, comparePassword } from './password.service.js';
 import { signToken } from './token.service.js';
 import { sanitizeUser } from '../../utils/sanitize.js';
 
+const normalizeSubjects = (subjects) => {
+  if (!Array.isArray(subjects)) return [];
+  const cleaned = subjects
+    .map((subject) => (typeof subject === 'string' ? subject.trim() : ''))
+    .filter((subject) => subject.length > 0);
+  return [...new Set(cleaned)];
+};
+
 export const registerFacultyRequest = async (payload) => {
   const existing = await Faculty.findOne({ email: payload.email });
   if (existing) {
@@ -48,4 +56,16 @@ export const approveFaculty = async ({ facultyId, adminId }) => {
   faculty.approvedBy = adminId;
   await faculty.save();
   return faculty;
+};
+
+export const updateFacultySubjects = async ({ facultyId, subjects }) => {
+  const faculty = await Faculty.findById(facultyId);
+  if (!faculty) {
+    throw new Error('Faculty not found');
+  }
+
+  faculty.subjects = normalizeSubjects(subjects);
+  await faculty.save();
+
+  return sanitizeUser(faculty);
 };

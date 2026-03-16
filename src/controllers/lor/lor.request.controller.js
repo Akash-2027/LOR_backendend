@@ -1,8 +1,11 @@
+import { generateLorPdfBuffer } from '../../services/lor/lor.pdf.service.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 import { created, ok } from '../../utils/apiResponse.js';
 import {
   createStudentLorRequest,
   getApprovedFacultyList,
+  getFacultyLorRequestForPdf,
+  getStudentLorRequestForPdf,
   listFacultyLorRequests,
   listStudentLorRequests,
   updateFacultyLorRequestStatus
@@ -31,4 +34,22 @@ export const listFacultyLorRequestsController = asyncHandler(async (req, res) =>
 export const updateFacultyLorRequestStatusController = asyncHandler(async (req, res) => {
   const result = await updateFacultyLorRequestStatus(req.user.id, req.params.requestId, req.validated.body);
   return ok(res, result, 'Request status updated');
+});
+
+export const previewFacultyLorLetterController = asyncHandler(async (req, res) => {
+  const request = await getFacultyLorRequestForPdf(req.user.id, req.params.requestId);
+  const pdfBuffer = await generateLorPdfBuffer(request);
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="lor-${request._id}.pdf"`);
+  res.send(pdfBuffer);
+});
+
+export const downloadStudentLorLetterController = asyncHandler(async (req, res) => {
+  const request = await getStudentLorRequestForPdf(req.user.id, req.params.requestId);
+  const pdfBuffer = await generateLorPdfBuffer(request);
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="lor-${request._id}.pdf"`);
+  res.send(pdfBuffer);
 });
