@@ -8,6 +8,9 @@ import {
   updateFacultyLorRequestStatusSchema
 } from '../validators/lor/lor.request.schema.js';
 import {
+  adminCancelLorRequestController,
+  adminDeleteLorRequestController,
+  adminReassignLorRequestController,
   createStudentLorRequestController,
   downloadStudentLorLetterController,
   getApprovedFacultyController,
@@ -54,5 +57,9 @@ router.patch(
   validate(updateFacultyLorRequestStatusSchema),
   updateFacultyLorRequestStatusController
 );
+
+router.patch('/admin/:requestId/cancel', authMiddleware, roleMiddleware(ROLES.ADMIN), adminCancelLorRequestController);
+router.patch('/admin/:requestId/reassign', authMiddleware, roleMiddleware(ROLES.ADMIN), adminReassignLorRequestController);
+router.delete('/admin/:requestId', authMiddleware, roleMiddleware(ROLES.ADMIN), adminDeleteLorRequestController);
 
 export default router;

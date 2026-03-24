@@ -91,6 +91,36 @@ export const getFacultyLorRequestForPdf = async (facultyId, requestId) => {
   return request;
 };
 
+export const adminCancelLorRequest = async (requestId) => {
+  const request = await LorRequest.findByIdAndUpdate(
+    requestId,
+    { status: 'rejected', facultyRemark: 'Cancelled by admin' },
+    { new: true }
+  );
+  if (!request) throw httpError(404, 'LOR request not found');
+  return request;
+};
+
+export const adminReassignLorRequest = async (requestId, newFacultyId) => {
+  const faculty = await Faculty.findById(newFacultyId);
+  if (!faculty) throw httpError(404, 'Faculty not found');
+  if (faculty.approvalStatus !== 'approved') throw httpError(400, 'Selected faculty is not approved');
+
+  const request = await LorRequest.findByIdAndUpdate(
+    requestId,
+    { facultyId: newFacultyId },
+    { new: true }
+  );
+  if (!request) throw httpError(404, 'LOR request not found');
+  return request;
+};
+
+export const adminDeleteLorRequest = async (requestId) => {
+  const request = await LorRequest.findByIdAndDelete(requestId);
+  if (!request) throw httpError(404, 'LOR request not found');
+  return request;
+};
+
 export const getStudentLorRequestForPdf = async (studentId, requestId) => {
   const request = await LorRequest.findOne({ _id: requestId, studentId })
     .populate('studentId', 'name email enrollment mobile')

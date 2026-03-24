@@ -2,6 +2,9 @@ import { generateLorPdfBuffer } from '../../services/lor/lor.pdf.service.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 import { created, ok } from '../../utils/apiResponse.js';
 import {
+  adminCancelLorRequest,
+  adminDeleteLorRequest,
+  adminReassignLorRequest,
   createStudentLorRequest,
   getApprovedFacultyList,
   getFacultyLorRequestForPdf,
@@ -52,4 +55,19 @@ export const downloadStudentLorLetterController = asyncHandler(async (req, res) 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="lor-${request._id}.pdf"`);
   res.send(pdfBuffer);
+});
+
+export const adminCancelLorRequestController = asyncHandler(async (req, res) => {
+  const result = await adminCancelLorRequest(req.params.requestId);
+  return ok(res, result, 'LOR request cancelled');
+});
+
+export const adminReassignLorRequestController = asyncHandler(async (req, res) => {
+  const result = await adminReassignLorRequest(req.params.requestId, req.body.facultyId);
+  return ok(res, result, 'LOR request reassigned');
+});
+
+export const adminDeleteLorRequestController = asyncHandler(async (req, res) => {
+  const result = await adminDeleteLorRequest(req.params.requestId);
+  return ok(res, result, 'LOR request deleted');
 });
