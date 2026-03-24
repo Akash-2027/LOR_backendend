@@ -9,6 +9,11 @@ export const registerStudent = async (payload) => {
     throw new Error('Student already exists');
   }
 
+  if (payload.govtId) {
+    const dup = await Student.findOne({ govtId: payload.govtId });
+    if (dup) throw new Error('A student with this Govt ID is already registered');
+  }
+
   const passwordHash = await hashPassword(payload.password);
   const student = await Student.create({
     ...payload,
