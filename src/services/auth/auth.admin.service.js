@@ -34,7 +34,7 @@ export const loginAdmin = async ({ email, password }) => {
 
 export const listAdminStudents = async () => {
   return Student.find({})
-    .select('name email enrollment mobile role isActive createdAt updatedAt')
+    .select('name email enrollment mobile govtId role isActive createdAt updatedAt')
     .sort({ createdAt: -1 });
 };
 
@@ -51,4 +51,28 @@ export const listAdminLorRequests = async () => {
     .populate('facultyId', 'name email collegeEmail department')
     .select('studentId facultyId purpose targetUniversity program dueDate status facultyRemark documentType documentName createdAt updatedAt')
     .sort({ createdAt: -1 });
+};
+
+export const rejectFaculty = async (facultyId) => {
+  const faculty = await Faculty.findByIdAndUpdate(
+    facultyId,
+    { approvalStatus: 'rejected' },
+    { new: true }
+  );
+  if (!faculty) throw new Error('Faculty not found');
+  return faculty;
+};
+
+export const toggleFacultyActive = async (facultyId) => {
+  const faculty = await Faculty.findById(facultyId);
+  if (!faculty) throw new Error('Faculty not found');
+  faculty.isActive = !faculty.isActive;
+  await faculty.save();
+  return faculty;
+};
+
+export const deleteFaculty = async (facultyId) => {
+  const faculty = await Faculty.findByIdAndDelete(facultyId);
+  if (!faculty) throw new Error('Faculty not found');
+  return faculty;
 };

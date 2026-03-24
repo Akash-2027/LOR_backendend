@@ -1,10 +1,13 @@
 import asyncHandler from '../../utils/asyncHandler.js';
 import { ok } from '../../utils/apiResponse.js';
 import {
+  deleteFaculty,
   listAdminFaculties,
   listAdminLorRequests,
   listAdminStudents,
-  loginAdmin
+  loginAdmin,
+  rejectFaculty,
+  toggleFacultyActive
 } from '../../services/auth/auth.admin.service.js';
 
 export const loginAdminController = asyncHandler(async (req, res) => {
@@ -25,4 +28,19 @@ export const listAdminFacultiesController = asyncHandler(async (req, res) => {
 export const listAdminLorRequestsController = asyncHandler(async (req, res) => {
   const result = await listAdminLorRequests();
   return ok(res, result, 'LOR requests fetched');
+});
+
+export const rejectFacultyController = asyncHandler(async (req, res) => {
+  const result = await rejectFaculty(req.params.facultyId);
+  return ok(res, result, 'Faculty rejected');
+});
+
+export const toggleFacultyActiveController = asyncHandler(async (req, res) => {
+  const result = await toggleFacultyActive(req.params.facultyId);
+  return ok(res, result, `Faculty ${result.isActive ? 'activated' : 'deactivated'}`);
+});
+
+export const deleteFacultyController = asyncHandler(async (req, res) => {
+  const result = await deleteFaculty(req.params.facultyId);
+  return ok(res, result, 'Faculty deleted');
 });
