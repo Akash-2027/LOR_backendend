@@ -37,6 +37,10 @@ export const loginFaculty = async ({ email, password }) => {
     throw new Error('Faculty access pending approval');
   }
 
+  if (!faculty.isActive) {
+    throw new Error('Your account has been deactivated. Please contact the administrator.');
+  }
+
   const match = await comparePassword(password, faculty.passwordHash);
   if (!match) {
     throw new Error('Invalid credentials');

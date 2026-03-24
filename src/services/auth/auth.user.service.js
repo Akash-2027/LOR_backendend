@@ -30,6 +30,10 @@ export const loginStudent = async ({ email, password }) => {
     throw new Error('Invalid credentials');
   }
 
+  if (!student.isActive) {
+    throw new Error('Your account has been deactivated. Please contact the administrator.');
+  }
+
   const match = await comparePassword(password, student.passwordHash);
   if (!match) {
     throw new Error('Invalid credentials');
