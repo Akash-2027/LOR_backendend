@@ -19,7 +19,6 @@ export const connectDb = async () => {
       connectTimeoutMS: 30000
     })
     .then((conn) => {
-      console.log('[db] connected');
       return conn;
     })
     .catch((error) => {

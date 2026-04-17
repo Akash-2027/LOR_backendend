@@ -1,21 +1,56 @@
 import dotenv from 'dotenv';
+import { z } from 'zod';
 
 dotenv.config();
 
+// Fail fast on startup if required env vars are missing or insecure
+const envSchema = z.object({
+  NODE_ENV:              z.enum(['development', 'production', 'test']).default('development'),
+  PORT:                  z.coerce.number().default(4000),
+  MONGO_URI:             z.string().min(10, 'MONGO_URI is required'),
+  JWT_SECRET:            z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
+  JWT_EXPIRES_IN:        z.string().default('7d'),
+  CLIENT_BASE_URL:       z.string().url().default('http://localhost:5173'),
+  RESET_TOKEN_TTL_MINUTES: z.coerce.number().default(15),
+  SMTP_HOST:             z.string().default(''),
+  SMTP_PORT:             z.coerce.number().default(587),
+  SMTP_SECURE:           z.string().default('false'),
+  SMTP_USER:             z.string().default(''),
+  SMTP_PASS:             z.string().default(''),
+  SMTP_FROM:             z.string().default('LOR Portal <no-reply@example.com>'),
+  RESEND_API_KEY:        z.string().default(''),
+  RESEND_FROM:           z.string().default('LOR Portal <no-reply@gecmodasa.ac.in>'),
+  EMAIL_MONTHLY_CAP:     z.coerce.number().default(30)
+});
+
+const parsed = envSchema.safeParse(process.env);
+
+if (!parsed.success) {
+  console.error('[env] Invalid environment configuration:');
+  parsed.error.errors.forEach((e) => console.error(`  ${e.path.join('.')}: ${e.message}`));
+  process.exit(1);
+}
+
+const raw = parsed.data;
+
 const env = {
-  nodeEnv: process.env.NODE_ENV || 'development',
-  port: Number(process.env.PORT || 4000),
-  mongoUri: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/lor_nexus',
-  jwtSecret: process.env.JWT_SECRET || 'change-me-in-prod',
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  clientBaseUrl: process.env.CLIENT_BASE_URL || 'http://localhost:5173',
-  resetTokenTtlMinutes: Number(process.env.RESET_TOKEN_TTL_MINUTES || 15),
-  smtpHost: process.env.SMTP_HOST || '',
-  smtpPort: Number(process.env.SMTP_PORT || 587),
-  smtpSecure: process.env.SMTP_SECURE === 'true',
-  smtpUser: process.env.SMTP_USER || '',
-  smtpPass: process.env.SMTP_PASS || '',
-  smtpFrom: process.env.SMTP_FROM || 'LOR Portal <no-reply@example.com>'
+  nodeEnv:              raw.NODE_ENV,
+  port:                 raw.PORT,
+  mongoUri:             raw.MONGO_URI,
+  jwtSecret:            raw.JWT_SECRET,
+  jwtExpiresIn:         raw.JWT_EXPIRES_IN,
+  clientBaseUrl:        raw.CLIENT_BASE_URL,
+  resetTokenTtlMinutes: raw.RESET_TOKEN_TTL_MINUTES,
+  smtpHost:             raw.SMTP_HOST,
+  smtpPort:             raw.SMTP_PORT,
+  smtpSecure:           raw.SMTP_SECURE === 'true',
+  smtpUser:             raw.SMTP_USER,
+  smtpPass:             raw.SMTP_PASS,
+  smtpFrom:             raw.SMTP_FROM,
+  resendApiKey:         raw.RESEND_API_KEY,
+  resendFrom:           raw.RESEND_FROM,
+  emailMonthlyCap:      raw.EMAIL_MONTHLY_CAP,
+  isProd:               raw.NODE_ENV === 'production'
 };
 
 export default env;

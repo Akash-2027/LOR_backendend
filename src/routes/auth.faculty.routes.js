@@ -7,13 +7,15 @@ import {
   registerFacultySchema,
   loginFacultySchema,
   approveFacultySchema,
-  updateFacultySubjectsSchema
+  updateFacultySubjectsSchema,
+  updateFacultyProfileSchema
 } from '../validators/auth/auth.faculty.schema.js';
 import {
   registerFacultyController,
   loginFacultyController,
   approveFacultyController,
-  updateFacultySubjectsController
+  updateFacultySubjectsController,
+  updateFacultyProfileController
 } from '../controllers/auth/auth.faculty.controller.js';
 
 const router = Router();
@@ -33,6 +35,14 @@ router.patch(
   roleMiddleware(ROLES.FACULTY),
   validate(updateFacultySubjectsSchema),
   updateFacultySubjectsController
+);
+
+router.patch(
+  '/profile',
+  authMiddleware,
+  roleMiddleware(ROLES.FACULTY),
+  validate(updateFacultyProfileSchema),
+  updateFacultyProfileController
 );
 
 export default router;
