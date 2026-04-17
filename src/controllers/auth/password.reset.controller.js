@@ -4,7 +4,6 @@ import { requestPasswordReset, resetPasswordWithToken } from '../../services/aut
 
 export const forgotPasswordController = asyncHandler(async (req, res) => {
   const result = await requestPasswordReset(req.validated.body);
-  console.log(result);
   return ok(res, result, 'If the email exists, a reset link has been sent');
 });
 

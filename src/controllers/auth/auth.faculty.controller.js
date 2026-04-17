@@ -4,7 +4,8 @@ import {
   registerFacultyRequest,
   loginFaculty,
   approveFaculty,
-  updateFacultySubjects
+  updateFacultySubjects,
+  updateFacultyProfile
 } from '../../services/auth/auth.faculty.service.js';
 
 export const registerFacultyController = asyncHandler(async (req, res) => {
@@ -25,4 +26,9 @@ export const approveFacultyController = asyncHandler(async (req, res) => {
 export const updateFacultySubjectsController = asyncHandler(async (req, res) => {
   const faculty = await updateFacultySubjects({ facultyId: req.user.id, subjects: req.validated.body.subjects });
   return ok(res, faculty, 'Subjects updated');
+});
+
+export const updateFacultyProfileController = asyncHandler(async (req, res) => {
+  const faculty = await updateFacultyProfile({ facultyId: req.user.id, payload: req.validated.body });
+  return ok(res, faculty, 'Profile updated');
 });

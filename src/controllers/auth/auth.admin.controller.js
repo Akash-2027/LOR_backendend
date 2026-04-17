@@ -1,6 +1,7 @@
 import asyncHandler from '../../utils/asyncHandler.js';
 import { ok } from '../../utils/apiResponse.js';
 import {
+  adminUpdateFacultyProfile,
   deleteFaculty,
   listAdminFaculties,
   listAdminLorRequests,
@@ -16,17 +17,23 @@ export const loginAdminController = asyncHandler(async (req, res) => {
 });
 
 export const listAdminStudentsController = asyncHandler(async (req, res) => {
-  const result = await listAdminStudents();
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+  const result = await listAdminStudents({ page, limit });
   return ok(res, result, 'Students fetched');
 });
 
 export const listAdminFacultiesController = asyncHandler(async (req, res) => {
-  const result = await listAdminFaculties();
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+  const result = await listAdminFaculties({ page, limit });
   return ok(res, result, 'Faculties fetched');
 });
 
 export const listAdminLorRequestsController = asyncHandler(async (req, res) => {
-  const result = await listAdminLorRequests();
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 100));
+  const result = await listAdminLorRequests({ page, limit });
   return ok(res, result, 'LOR requests fetched');
 });
 
@@ -43,4 +50,9 @@ export const toggleFacultyActiveController = asyncHandler(async (req, res) => {
 export const deleteFacultyController = asyncHandler(async (req, res) => {
   const result = await deleteFaculty(req.params.facultyId);
   return ok(res, result, 'Faculty deleted');
+});
+
+export const adminUpdateFacultyProfileController = asyncHandler(async (req, res) => {
+  const result = await adminUpdateFacultyProfile(req.params.facultyId, req.validated.body);
+  return ok(res, result, 'Faculty profile updated');
 });

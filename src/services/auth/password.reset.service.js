@@ -3,6 +3,7 @@ import Student from '../../models/user.student.model.js';
 import Faculty from '../../models/user.faculty.model.js';
 import Admin from '../../models/user.admin.model.js';
 import env from '../../config/env.js';
+import httpError from '../../utils/httpError.js';
 import { hashPassword } from './password.service.js';
 import { sendMail } from '../mail.service.js';
 
@@ -35,20 +36,15 @@ export const requestPasswordReset = async ({ email }) => {
   user.resetPasswordExpiresAt = new Date(Date.now() + env.resetTokenTtlMinutes * 60 * 1000);
   await user.save();
 
-  const query = new URLSearchParams({
-    panel: 'reset',
-    email: user.email,
-    token: rawToken
-  }).toString();
-
-  const resetLink = `${env.clientBaseUrl}/auth?${query}`;
-  console.log(resetLink);
+  // Reset code sent in email (NOT in URL) — user enters it in a form
+  const resetCode = rawToken.substring(0, 6).toUpperCase(); // Show first 6 chars as the code
+  const resetPageUrl = `${env.clientBaseUrl}/auth?panel=reset&email=${encodeURIComponent(user.email)}`;
 
   const mailResult = await sendMail({
     to: user.email,
-    subject: 'LOR Portal - Reset Password Link',
-    text: `Use this link to reset your password: ${resetLink}`,
-    html: `<p>Use this link to reset your password:</p><p><a href=\"${resetLink}\">${resetLink}</a></p><p>This link expires in ${env.resetTokenTtlMinutes} minutes.</p>`
+    subject: 'LOR Portal - Password Reset Code',
+    text: `Your password reset code is: ${rawToken}\n\nEnter this code at: ${resetPageUrl}\n\nThis code expires in ${env.resetTokenTtlMinutes} minutes.\n\nIf you did not request this, ignore this email.`,
+    html: `<p>Your password reset code is:</p><p style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${resetCode}</p><p><a href="${resetPageUrl}">Click here to reset password</a> and enter the code above.</p><p>This code expires in ${env.resetTokenTtlMinutes} minutes.</p><p><small>If you did not request this, you can safely ignore this email.</small></p>`
   });
 
   return {
@@ -63,7 +59,7 @@ export const resetPasswordWithToken = async ({ email, token, newPassword }) => {
   const user = await findUserByEmail(email);
 
   if (!user) {
-    throw new Error('Invalid or expired reset token');
+    throw httpError(400, 'Invalid or expired reset token');
   }
 
   const tokenHash = hashResetToken(token);
@@ -71,12 +67,14 @@ export const resetPasswordWithToken = async ({ email, token, newPassword }) => {
   const isNotExpired = user.resetPasswordExpiresAt && user.resetPasswordExpiresAt > new Date();
 
   if (!isTokenValid || !isNotExpired) {
-    throw new Error('Invalid or expired reset token');
+    throw httpError(400, 'Invalid or expired reset token');
   }
 
   user.passwordHash = await hashPassword(newPassword);
   user.resetPasswordTokenHash = null;
   user.resetPasswordExpiresAt = null;
+  // Increment tokenVersion to invalidate all existing sessions
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
 
   await user.save();
 
