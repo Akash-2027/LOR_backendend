@@ -20,6 +20,11 @@ const createTransport = async () => {
     });
   }
 
+  // In production, SMTP must be configured — don't silently fall back to Ethereal
+  if (env.isProd) {
+    throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS environment variables.');
+  }
+
   const testAccount = await nodemailer.createTestAccount();
   cachedMode = 'ethereal';
   return nodemailer.createTransport({
