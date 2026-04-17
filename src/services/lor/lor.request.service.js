@@ -1,6 +1,9 @@
 import Faculty from '../../models/user.faculty.model.js';
 import LorRequest from '../../models/lor.request.model.js';
 import httpError from '../../utils/httpError.js';
+import logger from '../../utils/logger.js';
+import { sendFacultyNotificationEmail } from './lor.email.service.js';
+import { ensureVerificationToken } from './lor.verification.service.js';
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -51,31 +54,46 @@ export const createStudentLorRequest = async (studentId, payload) => {
     status: 'pending'
   });
 
+  // Fire-and-forget — email failure must never block request creation
+  sendFacultyNotificationEmail(request).catch((err) =>
+    logger.warn({ err, requestId: request._id }, '[lor-email] background notification failed')
+  );
+
   return request;
 };
 
 export const listStudentLorRequests = async (studentId) => {
   return LorRequest.find({ studentId })
     .populate('facultyId', 'name email collegeEmail department')
+    .select('facultyId purpose targetUniversity program dueDate status facultyRemark documentType documentName createdAt updatedAt')
     .sort({ createdAt: -1 });
 };
 
 export const listFacultyLorRequests = async (facultyId) => {
   return LorRequest.find({ facultyId })
     .populate('studentId', 'name email enrollment mobile')
+    .select('studentId subject purpose targetUniversity program dueDate status facultyRemark achievements lorRequirements documentType documentName documentData facultyEditedAt createdAt updatedAt')
     .sort({ createdAt: -1 });
 };
 
-export const updateFacultyLorRequestStatus = async (facultyId, requestId, payload) => {
-  const request = await LorRequest.findOne({ _id: requestId, facultyId });
-  if (!request) {
-    throw httpError(404, 'Request not found for this faculty');
-  }
+export const facultyEditLorRequestContent = async (facultyId, requestId, payload) => {
+  const request = await LorRequest.findOne({ _id: requestId, facultyId, status: 'pending' });
+  if (!request) throw httpError(404, 'Pending request not found for this faculty');
 
-  request.status = payload.status;
-  request.facultyRemark = payload.facultyRemark || '';
+  if (payload.achievements !== undefined) request.achievements = payload.achievements.trim();
+  if (payload.lorRequirements !== undefined) request.lorRequirements = payload.lorRequirements.trim();
+  request.facultyEditedAt = new Date();
   await request.save();
+  return request;
+};
 
+export const updateFacultyLorRequestStatus = async (facultyId, requestId, payload) => {
+  const request = await LorRequest.findOneAndUpdate(
+    { _id: requestId, facultyId },
+    { status: payload.status, facultyRemark: payload.facultyRemark || '' },
+    { new: true }
+  );
+  if (!request) throw httpError(404, 'Request not found for this faculty');
   return request;
 };
 
@@ -134,5 +152,8 @@ export const getStudentLorRequestForPdf = async (studentId, requestId) => {
     throw httpError(403, 'Letter is not approved yet');
   }
 
-  return request;
+  // Idempotent — reuses existing token on re-download
+  const verificationToken = await ensureVerificationToken(request._id);
+
+  return { request, verificationToken };
 };
