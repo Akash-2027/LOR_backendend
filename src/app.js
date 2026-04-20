@@ -35,8 +35,9 @@ app.use(helmet());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
-  'https://lor-frontend.vercel.app'
-];
+  'https://lor-frontend.vercel.app',
+  env.clientBaseUrl // Dynamic origin from environment (production)
+].filter(Boolean); // Remove empty values
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (server-to-server, curl, Postman)
