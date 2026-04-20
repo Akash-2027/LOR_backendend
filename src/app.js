@@ -8,7 +8,6 @@ import env from './config/env.js';
 import { connectDb } from './config/db.js';
 import routes from './routes/index.routes.js';
 import errorMiddleware from './middlewares/error.middleware.js';
-import { validateCsrfToken } from './middlewares/csrf.middleware.js';
 
 const app = express();
 
@@ -81,9 +80,6 @@ app.use(
     legacyHeaders: false
   })
 );
-
-// CSRF validation on all state-changing requests
-app.use(validateCsrfToken);
 
 // Stricter limiter for auth endpoints (brute-force protection)
 const authLimiter = rateLimit({
