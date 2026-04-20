@@ -43,8 +43,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
-  credentials: true,
-  exposedHeaders: ['X-CSRF-Token', 'X-Session-ID']
+  credentials: true
 }));
 
 // Gzip compression
