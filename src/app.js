@@ -57,6 +57,11 @@ app.use(morgan(env.isProd ? 'combined' : 'dev'));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Health check — before DB middleware so it always responds
+app.get('/health', (req, res) =>
+  res.json({ status: 'ok', ...(env.isProd ? {} : { env: env.nodeEnv }) })
+);
+
 // In serverless deployments, ensure DB is connected before route handlers run.
 app.use(async (req, res, next) => {
   try {
@@ -92,11 +97,6 @@ app.use('/api/v1/auth/student/login', authLimiter);
 app.use('/api/v1/auth/faculty/login', authLimiter);
 app.use('/api/v1/auth/admin/login', authLimiter);
 app.use('/api/v1/auth/password', authLimiter);
-
-// Health check — hide env details in production
-app.get('/health', (req, res) =>
-  res.json({ status: 'ok', ...(env.isProd ? {} : { env: env.nodeEnv }) })
-);
 
 app.use('/api/v1', routes);
 
